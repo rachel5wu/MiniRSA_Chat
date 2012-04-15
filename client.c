@@ -6,14 +6,13 @@ void *readData(void *connfd) {
     char buffer[256];
     while(1) {
         read(*fd, buffer, sizeof(buffer));
-      puts(buffer);
+        puts(buffer);
         if (strcmp("quit", buffer) == 0) {
-	       write(*fd, buffer, strlen(buffer));
-           return;
+            write(*fd, buffer, strlen(buffer));
+            return;
         }
         bzero(buffer, 256);
     }
-
 }
 
 void *writeData(void *connfd) {
@@ -22,12 +21,12 @@ void *writeData(void *connfd) {
     int i = 0;
     while(1) {
         while(1) {
-            if((buffer[i] = getchar()) == '\n') {
+            buffer[i] = getchar();
+            if(buffer[i] == '\n') {
                 buffer[i] = '\0';
                 i = 0;
                 break;
-            }
-            else {
+            }else {
                 i++;
             }
         }
@@ -37,14 +36,12 @@ void *writeData(void *connfd) {
         }
 	    bzero(buffer, 256);
     }
-
 }
 
 
 int main(int argc, char** argv) {
 	int n;
 	int fd;
-
 	pthread_t readThread, writeThread;
 	if(argc < 3) {
 	   printf("Usage: %s port\n", argv[0]);
@@ -57,6 +54,6 @@ int main(int argc, char** argv) {
     pthread_create(&writeThread, NULL, writeData, &fd);
 	pthread_join(readThread, NULL);
     pthread_cancel(writeThread);
-       
+    
 	close(fd);
 }
