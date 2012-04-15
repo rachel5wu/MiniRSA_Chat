@@ -36,7 +36,8 @@ void *writeData(void *fd) {
     int i = 0;
     while(1) {
         while(1) {
-            if((buffer[i] = getchar()) == '\n') {
+            buffer[i] = getchar();
+            if( buffer[i] == '\n') {
                 buffer[i] = '\0';
                 i = 0;
                 break;
@@ -44,7 +45,6 @@ void *writeData(void *fd) {
                 i++;
             }
         }
-       
         write(*connfd, buffer,strlen(buffer));
         if(strcmp(buffer, "quit") == 0) {return;}
         bzero(buffer, 256);
