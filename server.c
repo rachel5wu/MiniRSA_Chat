@@ -1,100 +1,83 @@
 #include "mysocket.h"
 #include <pthread.h>
-#include "RSALibrary.h"
+#include "RSALIBRARY.h"
 
-
-struct Arguments {
-    int connfd;
-    int my_e;
-    int my_c;
-    int my_d;
-    int you_e;
-    int you_c;
-};
-
-
-int hasReturned = 0;
 
 void sendKeys( struct Arguments *args){
-    write(args->connfd, &args->my_e, sizeof(int));
-    write(args->connfd, &args->my_c, sizeof(int));
+    send(args->connfd, &args->my_e, sizeof(long), 0);
+    send(args->connfd, &args->my_c, sizeof(long), 0);
     printf("My public key: %d %d\n", args->my_e, args->my_c);
     printf("My private key: %d, %d\n", args->my_d, args->my_c);
 }
 
 
 void receiveKeys(struct Arguments *args) {
-    recv(args->connfd, &args->you_e, sizeof(int), 0);
-    recv(args->connfd, &args->you_c, sizeof(int), 0);
+    recv(args->connfd, &args->you_e, sizeof(long), 0);
+    recv(args->connfd, &args->you_c, sizeof(long), 0);
     printf("Friends' public key : %d %d\n", args->you_e, args->you_c);
 }
 
-void *readData(void *fd) {
-    struct Arguments *args = (struct Arguments *)fd;
-    int bufferSize = 0;
-    int encBuffer[256];
-    char buffer[256];  
-    bzero(buffer, 256);
-     
-    bzero(encBuffer, 256);
-    int i = 0;
-    
-    while(1) {
-    
-        bufferSize = recv(args->connfd, encBuffer, sizeof(encBuffer), 0);
-        bufferSize /= 4;
-        printf("Server recieved data\n"); 
-        printf("bufferSize: %d\n", bufferSize);  
-        
-        for (i = 0; i < bufferSize; i++) {
-                 encBuffer[i] = ntohl(encBuffer[i]);
-                 printf("%d\n", encBuffer[i]);
-        }
-        printf("BEGIN DECRYPT!!!!!!d=%d, c=%d", args->my_d, args->my_c);
-        for(i = 0; i < bufferSize; i++) {
-            buffer[i] = decrypt(encBuffer[i], args->my_d, args->my_c );
-            printf("buffer[i] = %c\n", buffer[i]);
-        
-        } 
-
-        if(strcmp(buffer, "quit") == 0) {
-	    write(args->connfd, buffer, sizeof(buffer));
-            return;    
-        }
-         bzero(buffer, 256);
-      
-    
-    }
-}
-
-void *writeData(void *fd) {
-    struct Arguments *args = (struct Arguments *)fd;
+void *readData(void *arguments) {
+    struct Arguments *args = (struct Arguments *)arguments;
     
     char buffer[256];
-    bzero(buffer, 256);
+    long encBuffer[256];
     int i = 0;
-    while(1) {
-        while(1) {
-        if((buffer[i] = getchar()) == '\n') {
-            buffer[i] = '\0';
-            i = 0;
-            break;
+    int numOfBytes;
+   
+    while(args->run) {
+        printf("\nFriend: ");
+        numOfBytes = recv(args->connfd, encBuffer, sizeof(encBuffer), 0);
+        for(i = 0; i< numOfBytes/8; i++){
+           printf("%ld ", encBuffer[i]);
         }
-        else {
-            i++;
+        printf("\n");
+        for(i = 0; i < numOfBytes / 8; i++) {
+            buffer[i] = decrypt(encBuffer[i], args->my_d, args->my_c);
+            printf("%c",  buffer[i]);
         }
-        }
-       
-        write(args->connfd, buffer,strlen(buffer));
+        buffer[i] = '\0';
         if(strcmp(buffer, "quit") == 0) {
-          
-           return;
-       }
-        bzero(buffer, 256);
-      
+	    write(args->connfd, buffer, sizeof(buffer));
+            args->run = 0;
+            return;
+        }
+        bzero(buffer, sizeof(buffer));
+        bzero(encBuffer, sizeof(encBuffer));
     }
+    pthread_exit(0);
 }
 
+void *writeData(void *arguments) {
+    struct Arguments *args = (struct Arguments *)arguments;
+    
+    char buffer[256];
+    long encBuffer[256];
+    int i = 0, num = 0;
+
+    while(1) {
+        i = 0;
+        printf("\nMe: ");
+        while(1) {
+            buffer[i] = getchar();
+            if(buffer[i] == '\n') {
+                buffer[i] = '\0';
+                break;
+            }
+            i++;
+        }
+        for(i=0; i<strlen(buffer); i++){
+           encBuffer[i] = encrypt(buffer[i], args->you_e, args->you_c);
+           printf("%ld ", encBuffer[i]);
+        }
+        encBuffer[i] = '\0';
+        send(args->connfd, encBuffer,(strlen(buffer)+1)*sizeof(long), 0);
+        if(strcmp(buffer, "quit") == 0) { args->run = 0;return;}
+        bzero(buffer, sizeof(buffer));
+        bzero(encBuffer, sizeof(encBuffer));
+    }
+    pthread_exit(0);
+}
 
 int main(int argc, char** argv) {
         srand(time(NULL)); 
@@ -102,37 +85,32 @@ int main(int argc, char** argv) {
         struct Arguments args;
 	int srvfd, connfd;
 	char buffer[256];
-	int a, b; //the two prime numbers
-	
+	long a, b; //the two prime numbers
+	char base[256];
+        int i;
+        long enc, dec;
 	if(argc < 4) {
-	   printf("Usage: %s port\n", argv[0]);
+	   printf("file portNum prime1 prime2\n");
 	   exit(0);
 	}
-        a = atoi(argv[2]);
-        b = atoi(argv[3]); 
+        a = atoi(argv[2]) + 6;
+        b = atoi(argv[3]) + 6; 
         generatePrimeNumbers(&a, &b);
-        printf("a = %d, b= %d\n", a , b);
-        /*e,c for encrypt, d,c for decrypt*/
-        int c = a * b; 
-        int t = totient(a*b);
-        int e = coprime(t);  
-        int d = mod_inverse(e, (a - 1) * (b - 1)); 
-        printf("c = %d t = %d e = %d d = %d\n", c,t,e,d);
-	
-
+        generateKeys(a, b, &args.my_e, &args.my_d, &args.my_c);
+        args.run = 1;
 	srvfd = makeListener(atoi(argv[1]));
 	connfd = listenFor(srvfd);
         args.connfd = connfd;
-        args.my_e  = e;
-        args.my_c = c;
-        args.my_d = d; 
+         
         sendKeys(&args);
         receiveKeys(&args);
-        printf("e%d c%d d%d\n", args.my_e, args.my_c, args.my_d);
+        printKeys(args);
+
         pthread_create(&readThread, NULL, readData, &args);
         pthread_create(&writeThread, NULL, writeData, &args);
         pthread_join(readThread, NULL);
         pthread_cancel(writeThread);
-	close(connfd);	
-	close(srvfd);
+        close(connfd);
+        close(srvfd);
 }
+ 
