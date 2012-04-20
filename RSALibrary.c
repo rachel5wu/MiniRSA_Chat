@@ -5,97 +5,53 @@
 #include <string.h>
 
 
-struct Arguments {
-    int connfd;
-    long my_e;
-    long my_c;
-    long my_d;
-    long you_e;
-    long you_c;
-    int run;
-};
-/*
- * returns 0 if an error occurs, returns 1 if everything is fine
- */
-
 long extractTwos( long m , long *s,  long *d) {
-    if (s == NULL  && d == NULL) {
-        return 0;
-    }
+    if (s == NULL  && d == NULL) {return 0;}
     *s = 0;
     *d = 0;
     while(m % 2 == 0) {
         m = m / 2;
         *s += 1;
-
     }
     *d = m;
     return 1;
-
 }
 
- long  long2BaseTwo ( long x,  long *c) {
-     long numOfDigits = 1 + log2(x);
-     long i = 0;
-
-    if (c == NULL) {
-        return 0;
-    }   
+long  long2BaseTwo ( long x,  long *c) {
+    long numOfDigits = 1 + log2(x);
+    long i = 0;
+    if (c == NULL) { return 0;}   
     for(i = 0; i < numOfDigits ; i++) {
         c[i] = x % 2;
         x = x / 2;
-     
     }
     return 1;
-
 }
 
- long GCD( long a,  long b) {
-     long remainder = 1;
-
-    if(a == 0)
-       return b;
-    if (b == 0)
-       return a; 
+long GCD( long a,  long b) {
+    long remainder = 1;
+    if(a == 0) return b;
+    if (b == 0) return a; 
     while(remainder != 0) {
         remainder = a % b;
         a = b;
         b = remainder; 
-
     }
     return a;
 }
 
- long coprime( long x) {
-     long random, i;
-    
+long coprime( long x) {
+    long random, i;    
     for(i = 0; i < 200000; i++)  {
         random = rand() % 1000;
         if(random > 1) {
-
-            if(GCD(x, random) == 1) 
-                return random;
-
+            if(GCD(x, random) == 1) return random;
         }
     }
     return -1; 
-
 }
 
-/*
 long modulo(long a, long d, long n) {
-    long retValue = 1;
-    printf("bruteforce\n");
-    int i  = 0; 
-    for(i = 0; i < d ; i++) {
-    printf("bruteforce\n");
-    retValue = a * retValue;
-    retValue = retValue % n;
-    }  
-    return a;
-}*/
-
-long modulo(long a,  long d,  long n) {
     long *c;
     long *auxc;
     long numOfDigits = 1 + log2(d);
@@ -105,7 +61,6 @@ long modulo(long a,  long d,  long n) {
     c = ( long *)malloc((numOfDigits )* sizeof( long)); 
     auxc = ( long *)malloc((numOfDigits )* sizeof( long)); 
     long2BaseTwo(d, c);
-
     auxc[0] = a % n;
     remainder = auxc[0]; 
     for (i = 1; i < numOfDigits; i++) {
@@ -145,16 +100,13 @@ long extendedEuclid( long a,  long b,  long *u1,  long *u2,  long *u3) {
         v1 = t1;
         v2 = t2;
         v3 = t3; 
- 
     }
- 
 }
 
 long isPrime( long x) {
     long i = 0;
     for(i = 2; i  < x; i++) {
-        if((x % i) == 0)
-            return 0; 
+        if((x % i) == 0)return 0; 
     }
     return 1;
 }
@@ -174,7 +126,6 @@ long totient( long n) {
             index++;
         }
     } 
-    //now we have the list in primeList, brute force to find the primeNUmbers
     for(i = 0; i < index; i++) {
         for (j = 0 ; j  <index; j++) {
             if(primeList[i] * primeList[j] == n) {
@@ -201,13 +152,10 @@ long mod_inverse( long base,  long m) {
     d = 1;
     x = 1;
     y = 1;
-    
     if(GCD(base, m) == 1) {  
         extendedEuclid( base, m,  &x, &y, &d);
         retValue =  x;
-        if(retValue < 0) {
-           retValue = retValue +  m;
-        }
+        if(retValue < 0) { retValue = retValue +  m;}
         return retValue; 
     }
     return -1;
@@ -223,7 +171,6 @@ long generatePrimeNumbers( long *m,  long *n) {
     long *primeList = ( long *)malloc((maximum) * sizeof( long));
     long index = 1; 
     long i = 3;
-     
     primeList[0] = 2;
     while(index < maximum) {
         if (isPrime(i) == 1) {
@@ -244,9 +191,3 @@ void generateKeys(long a, long b, long *e, long *d, long *c) {
     *d = mod_inverse(*e,  ((a - 1) * (b - 1)));
 }
 
-
-void printKeys(struct Arguments args) {
-  
-    printf("PRINTING KEYS: my_e = %ld, my_d = %ld, my_c = %ld you_e %ld   you_c = %ld\n", args.my_e, args.my_d, args.my_c, args.you_e, args.you_c);
-
-}
