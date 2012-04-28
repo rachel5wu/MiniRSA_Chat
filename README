@@ -1,7 +1,7 @@
-******************************NAME : Weizhuo Wu, Swati Goswami****************************
-**************************************GIT REPOSITORY**************************************
+*********NAME : Weizhuo Wu, Swati Goswami********
+*****************GIT REPOSITORY******************
 http://github.com/weizhuo/MiniRSA_Chat
-*************************************APPROACH*********************************************
+*******************APPROACH**********************
 while server and client build their connection, they exchange their public key.
 When they write message to each other, first encode it using friend's public key and send out. 
 When they receive the encoded message, they decoded it using his own private key.
@@ -15,8 +15,8 @@ Makefile:
            type "make run_crackKey" for cracking key.
 
 3. make clean to delete object files. 
-*************************************SAMPLE  RUNS*****************************************
-***************************SERVER****************************
+*****************SAMPLE  RUNS******************
+********************SERVER*********************
 weizhuo@QUIDDITY:/mnt/castor/seas_home/w/weizhuo/595workspace/RSAchat> valgrind --tool=helgrind s 12345 2 4
 ==30960== Helgrind, a thread error detector
 ==30960== Copyright (C) 2007-2010, and GNU GPL'd, by OpenWorks LLP et al.
@@ -56,7 +56,7 @@ quit
 ==30960== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 424 from 74)
 weizhuo@QUIDDITY:/mnt/castor/seas_home/w/weizhuo/595workspace/RSAchat> ^C
 
-*****************************CLIENT*******************************
+*****************CLIENT********************
 weizhuo@QUIDDITY:/mnt/castor/seas_home/w/weizhuo/595workspace/RSAchat> valgrind --tool=helgrind c 12345 QUIDDITY 9 8
 ==30961== Helgrind, a thread error detector
 ==30961== Copyright (C) 2007-2010, and GNU GPL'd, by OpenWorks LLP et al.
@@ -93,8 +93,8 @@ Me: quit
 ==30961== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 341 from 70)
 weizhuo@QUIDDITY:/mnt/castor/seas_home/w/weizhuo/595workspace/RSAchat> 
 
-************************************************************************
-*******************************BruteForce*******************************
+**************************************
+**************BruteForce**************
 1. The user will be prompted for the public keys, the product of prime numbers first and then the public key exponent.
 2. If the keys doesnt adhere to the requirements of the RSA algorithm , an error message will be displayed.
 3. After the keys have been cracked and the private key is displayed, you can use this code to encrypt and decrypt characters. You will be prompted for appropriate options. 
