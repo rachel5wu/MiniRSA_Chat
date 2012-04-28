@@ -43,7 +43,7 @@ long GCD( long a,  long b) {
 long coprime( long x) {
     long random, i;    
     for(i = 0; i < 200000; i++)  {
-        random = rand() % 1000;
+        random = rand() % 100000;   
         if(random > 1) {
             if(GCD(x, random) == 1) return random;
         }
@@ -79,6 +79,11 @@ long modulo(long a, long d, long n) {
 }
 
 
+
+/* Extended Euclid algorithm has been taken from this source:
+ *
+ *  http://en.literateprograms.org/Extended_Euclidean_algorithm_%28Python%29
+ */
 
 long extendedEuclid( long a,  long b,  long *u1,  long *u2,  long *u3) {
     int v1, v2, v3, t1, t2, t3;
@@ -191,3 +196,52 @@ void generateKeys(long a, long b, long *e, long *d, long *c) {
     *d = mod_inverse(*e,  ((a - 1) * (b - 1)));
 }
 
+
+int generatePrimeNumberList(int capacity, int *primeNumbers) {
+    int index = 1;
+    int number = 3;
+    int i = 0;
+    if(primeNumbers == NULL)
+       return 0;
+    primeNumbers[0] = 2;
+    while(index < capacity) {
+        if(isPrime(i) == 1) {
+            primeNumbers[index] = i;
+            index++;
+        
+        }          
+        i++;
+
+    }
+
+}
+
+void findPrimes(long key, long *a, long *b) {
+
+    int *primeNumbers = (int *)malloc(sizeof(int) * key);
+    int i = 0;
+    int j = 0;
+    if(primeNumbers == NULL) {
+        printf("Could not allocate memory!");
+        return;
+
+    }
+    generatePrimeNumberList(key, primeNumbers);
+  
+
+    //now brute force
+    for(i = 0; i < key; i++) {
+       
+        for(j = 0; j < key; j++) {
+            if((primeNumbers[i] * primeNumbers[j]) == key) {
+              *a = primeNumbers[j];
+              *b = primeNumbers[i];   
+              return;
+
+            }
+        }
+    }
+    *a = -1;
+    *b = -1;
+    free(primeNumbers);
+}
