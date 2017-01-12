@@ -10,7 +10,7 @@ long extractTwos( long m , long *s,  long *d) {
     *s = 0;
     *d = 0;
     while(m % 2 == 0) {
-        m = m / 2;
+        m = m / 2; 
         *s += 1;
     }
     *d = m;
